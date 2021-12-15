@@ -1,0 +1,54 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"system_error": "cpp",
+			"xlocale": "cpp",
+			"typeinfo": "cpp",
+			"array": "cpp",
+			"deque": "cpp",
+			"initializer_list": "cpp",
+			"list": "cpp",
+			"vector": "cpp",
+			"xhash": "cpp",
+			"xstring": "cpp",
+			"xtree": "cpp",
+			"xutility": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"cmath": "cpp",
+			"cstddef": "cpp",
+			"random": "cpp",
+			"functional": "cpp",
+			"memory": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"utility": "cpp",
+			"xmemory0": "cpp",
+			"xtr1common": "cpp",
+			"queue": "cpp",
+			"ios": "cpp",
+			"*.tcc": "cpp",
+			"iosfwd": "cpp",
+			"sstream": "cpp",
+			"algorithm": "cpp",
+			"atomic": "cpp",
+			"xiosbase": "cpp",
+			"istream": "cpp",
+			"xlocmes": "cpp",
+			"xlocmon": "cpp",
+			"xlocnum": "cpp",
+			"xloctime": "cpp",
+			"xlocbuf": "cpp"
+		},
+		"files.exclude": {
+			"**/_stuff": true,
+			"**/node_modules": true,
+			"**/EcoSenseAtClock/": true
+		}
+	}
+}
