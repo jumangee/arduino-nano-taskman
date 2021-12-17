@@ -30,6 +30,9 @@ module.exports = function(grunt) {
 		},
 		upload_sketch: {
 			exec: '"e:/Projects/!DIY/Arduino/IDE/arduino-cli.exe" upload -p COM5 --fqbn arduino:avr:nano firmware'
+		},
+		build: {
+			exec: 'rmdir "C:\Users\Jumangee\AppData\Local\Temp\arduino-sketch-*" /y'
 		}
 	},
 
