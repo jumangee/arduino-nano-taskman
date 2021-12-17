@@ -11,6 +11,8 @@ class IFirmware;
 #include "processy_cfg.h"
 #include <Arduino.h>
 
+#define PROCESSID(num) const static uint16_t ID = num; uint16_t getId() {return num;}
+
 class IFirmwareProcess {
 	public:
 		enum ProcessState {
@@ -23,28 +25,24 @@ class IFirmwareProcess {
  		ProcessState state;
 
 	public:
-		IFirmwareProcess(uint16_t pId, IProcessMessage* msg);
+		IFirmwareProcess(IProcessMessage* msg);
 
 		IFirmwareProcess::ProcessState getState() {
 			return this->state;
 		}
 
-		virtual ~IFirmwareProcess() {
-		};
+		static IFirmwareProcess* factory(IProcessMessage* msg);
 
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
-
-		uint16_t getId() {
-			return this->processId;
-		}
-
-		bool isId(int compareTo);
+		/**
+		 * @brief Get the Id of the process
+		 * 
+		 * @return uint16_t 
+		 */
+		virtual uint16_t getId() {};
 
 		void stop();
 
 		virtual bool isPaused(unsigned long start) {
-			//TRACE(S("IFirmwareProcess//start=", String(start).c_str(), ", lastUpdate=", String(this->lastUpdate).c_str() ))
-			//TRACE(S("IFirmwareProcess::run/",this->processId.c_str(),"/start=", String(start).c_str(),", pause=", String(this->pausedUpTo).c_str()) )
 			if (this->state == ProcessState::PAUSE) {
 				if (start < this->pausedUpTo) {
 					return true;
@@ -65,7 +63,7 @@ class IFirmwareProcess {
 		virtual bool handleMessage(IProcessMessage* msg);
 
 	private:
-		uint16_t processId;
+		//uint16_t processId;
 		unsigned long lastUpdate;
 		unsigned long pausedUpTo;
 

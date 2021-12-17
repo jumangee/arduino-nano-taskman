@@ -1,5 +1,5 @@
 /**
- * Dumb2 process (test)
+ * Dumb3 process (test)
  * for Processy Firmware Framework
  */
 
@@ -19,14 +19,13 @@ class Dumb3Process: public IFirmwareProcess {
         bool active;
 
 	public:
-		Dumb3Process(uint16_t pId, IProcessMessage* msg);
+		PROCESSID(PRC_DUMB3);
+
+		Dumb3Process(IProcessMessage* msg);
         
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		void update(unsigned long ms);
-
-		~Dumb3Process();
-
 };
 
 #endif

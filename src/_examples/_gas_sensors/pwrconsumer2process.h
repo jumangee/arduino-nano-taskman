@@ -29,11 +29,23 @@
         public:
             PROCESSID(PRC_CONSUMER2);
 
-            PwrConsumer2Process(IProcessMessage* msg);
+            //@implement
+            //@include "pwrconsumer_process.h"
+            PwrConsumer2Process(IProcessMessage* msg): PwrConsumerProcess(11, taskId, (*(&taskId + 1) - taskId), msg) {
+                TRACELNF("PwrConsumer2Process::init");
+            }
 
-            static IFirmwareProcess* factory(IProcessMessage* msg);
+            //@implement
+            static IFirmwareProcess* factory(IProcessMessage* msg) {
+                TRACELNF("PwrConsumer2Process::factory");
+                return new PwrConsumer2Process(msg);
+            }
 
-            bool handleMessageLogic(IProcessMessage* msg);
+            //@implement
+            //@include "processy_cfg.h"
+            bool handleMessageLogic(IProcessMessage* msg) {
+                return false;
+            }
     };
 
 #endif

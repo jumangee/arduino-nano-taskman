@@ -19,14 +19,13 @@ class Dumb2Process: public IFirmwareProcess {
         bool active;
 
 	public:
-		Dumb2Process(uint16_t pId, IProcessMessage* msg);
+		PROCESSID(PRC_DUMB2);
+
+		Dumb2Process(IProcessMessage* msg);
         
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
+		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		void update(unsigned long ms);
-
-		~Dumb2Process();
-
 };
 
 #endif

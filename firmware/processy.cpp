@@ -136,7 +136,7 @@ void IFirmware::handlerProcessDebugTimer(unsigned long dT) {
 		process->resetUsedMs();
 	}
 	#endif
-	TRACEF("[!] MEMORY STATUS: ");
+	TRACEF("MEM FREE:");
 	{
 		int free = freeMemory();
 		this->sendMessage(new MemUsageMessage(free));
@@ -152,7 +152,7 @@ bool IFirmware::update(unsigned long ms) {
 IFirmwareProcess* IFirmware::createProcess(uint16_t pId, IProcessMessage* msg) {
 	ProcessFactory factory = this->getFactory(pId);
 	if (factory != NULL) {
-		IFirmwareProcess* t = factory(pId, msg);
+		IFirmwareProcess* t = factory(msg);
 		return t;
 	}
 	return NULL;
@@ -160,7 +160,7 @@ IFirmwareProcess* IFirmware::createProcess(uint16_t pId, IProcessMessage* msg) {
 
 int IFirmware::findProcess(uint16_t pId) {
 	for (int i = 0; i < this->processList.size(); i++) {
-		if (this->processList.get(i)->isId(pId)) {
+		if (this->processList.get(i)->getId() == pId) {
 			return i;
 		}
 	}

@@ -12,6 +12,9 @@
 #include "pwrload_mngmnt.h"
 #include "examplefirmware_cfg.h"
 
+/**
+ * @brief Power management process: controls state and then ready - starts child processes, which do the work
+ */
 class PwrConsumerProcess: public IFirmwareProcess {
 	public:
 		enum WorkState {
@@ -21,7 +24,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			DONE
 		};
 
-	private:
+	protected:
         byte        	keyPin;
         uint32_t    	poweredTime;
 		WorkState		tasksArr[MAXTASKCOUNT];
@@ -29,7 +32,7 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		byte			taskCnt;
 
 	public:
-		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, int pId, IProcessMessage* msg);
+		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg);
 
 		void clearState();
 

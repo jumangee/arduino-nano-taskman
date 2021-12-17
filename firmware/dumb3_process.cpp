@@ -1,23 +1,18 @@
 #include "dumb3_process.h"
 
-Dumb3Process::Dumb3Process(uint16_t pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+Dumb3Process::Dumb3Process(IProcessMessage* msg) : IFirmwareProcess(msg){
 	TRACELNF("Dumb3Process::init");
 }
 
-static IFirmwareProcess* Dumb3Process::factory(uint16_t pId, IProcessMessage* msg) {
+static IFirmwareProcess* Dumb3Process::factory(IProcessMessage* msg) {
 	TRACELNF("Dumb3Process::factory");
-	return new Dumb3Process(pId, msg);
+	return new Dumb3Process(msg);
 }
 
 void Dumb3Process::update(unsigned long ms) {
 	if (random(50) == 10) {
-		this->getHost()->sendMessage(new TaskDoneMessage(PRC_DUMB3));
+		this->getHost()->sendMessage(new TaskDoneMessage(this));
 	}
 	else
 		this->pause(450);
-}
-
-Dumb3Process::~Dumb3Process() {
-	// stop process
-	TRACELNF("Dumb3Process::stop")
 }

@@ -34,18 +34,18 @@
 //#define MAIN_FONT Stang5x7
 #define MAIN_FONT fixednums7x15
 
-class MainProcess: public IFirmwareProcess {
+class DisplayServiceProcess: public IFirmwareProcess {
 	private:
 		SSD1306AsciiWire oled;
 		bool	updateScreen;
 		String	curPrcId;
 
 	public:
-		MainProcess(uint16_t pId, IProcessMessage* msg);
+		PROCESSID(PRC_MAIN);
 
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
+		DisplayServiceProcess(IProcessMessage* msg);
 
-		~MainProcess();
+		static IFirmwareProcess* factory(IProcessMessage* msg);
 
 		void update(unsigned long ms);
 

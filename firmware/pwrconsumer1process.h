@@ -10,22 +10,24 @@
     #include "processy_process.h"
     #include "processy_cfg.h"
 
+    #include "examplefirmware_cfg.h"
     #include "examplefirmware.h"
     #include "messages.h"
     #include "pwrconsumer_process.h"
-    #include "examplefirmware_cfg.h"
 
     /**
      * Process consists of 1 task, pwr switch at pin 12
      */
     class PwrConsumer1Process: public PwrConsumerProcess {
         private:
-            const uint16_t taskId[1] = {PRC_DUMB1};
+            const uint16_t taskId[1] = {PRC_PPD42NS};
 
         public:
-            PwrConsumer1Process(uint16_t pId, IProcessMessage* msg);
+            PROCESSID(PRC_CONSUMER1);
+            
+            PwrConsumer1Process(IProcessMessage* msg);
 
-            static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
+            static IFirmwareProcess* factory(IProcessMessage* msg);
 
             bool handleMessageLogic(IProcessMessage* msg);
     };

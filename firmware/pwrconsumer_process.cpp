@@ -3,7 +3,7 @@
 #include "pwrload_mngmnt.h"
 #include "messages.h"
 
-PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, int pId, IProcessMessage* msg) : IFirmwareProcess(pId, msg){
+PwrConsumerProcess::PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg) : IFirmwareProcess(msg){
 	TRACELNF("PwrConsumerProcess::init")
 	this->taskIdList = idList;
 	this->taskCnt = tasks;
@@ -74,13 +74,21 @@ void PwrConsumerProcess::update(unsigned long ms) {
 }
 
 bool PwrConsumerProcess::handleMessage(IProcessMessage* msg) {
-	if (msg->getType() == PRC_ORDER_MESSAGE)	{
-		if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
-			ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
-			this->getHost()->addProcess(msg->getNextId());	// go to next of process list
-			this->stop();
+	switch (msg->getType())
+	{
+		case TASKDONE_MESSAGE: {
+			TRACELNF("PwrConsumerProcess/TASKDONE_MESSAGE")
+			this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
+			return false;
 		}
-		return false;
+		case PRC_ORDER_MESSAGE: {
+			if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
+				ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
+				this->getHost()->addProcess(msg->getNextId());	// start next of process list
+				this->stop();
+			}
+			return false;
+		}
 	}
 	if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
 	return this->handleMessageLogic(msg);

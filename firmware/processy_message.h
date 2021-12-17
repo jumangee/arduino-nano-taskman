@@ -71,31 +71,4 @@ class ProcessStateMsg: public IProcessMessage {
 		IFirmwareProcess::ProcessState state;
 };
 
-
-/*class CmdMessage: public IProcessMessage {
-	public:
-		virtual enum Cmd {
-			NONE,
-			PAUSE,
-			UNPAUSE,
-			STOP
-		};
-
-		CmdMessage(CmdMessage::Cmd cmd, uint16_t to = 0, IFirmwareProcess* from = NULL): IProcessMessage(from, CMD_MESSAGE) {
-			this->cmd = cmd;
-			this->target = to;
-		}
-
-		// check: is prcId should do the cmd?
-		virtual Cmd getCmd(uint16_t prcId) {
-			if (this->target == 0 || this->target == prcId) {
-				return this->cmd;
-			}
-			return Cmd::NONE;
-		}
-	private:
-		Cmd cmd;
-		uint16_t target;
-};*/
-
 #endif
