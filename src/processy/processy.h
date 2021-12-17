@@ -12,14 +12,14 @@
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(idnum, className) ProcessFactoryReg(idnum, &className::factory)
+#define FACTORY(className) ProcessFactoryReg(className::ID, &className::factory)
 
-typedef IFirmwareProcess* (*ProcessFactory)(uint16_t, IProcessMessage*);
+typedef IFirmwareProcess* (*ProcessFactory)(IProcessMessage*);
 
 class ProcessFactoryReg {
 	public:
-		uint16_t id;
-		ProcessFactory factory;
+		uint16_t 		id;
+		ProcessFactory	factory;
 
 		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
 			this->id = pId;
@@ -198,7 +198,7 @@ class IFirmware {
 				process->resetUsedMs();
 			}
 			#endif
-			TRACEF("[!] MEMORY STATUS: ");
+			TRACEF("MEM FREE:");
 			{
 				int free = freeMemory();
 				this->sendMessage(new MemUsageMessage(free));
@@ -225,7 +225,7 @@ class IFirmware {
 		IFirmwareProcess* createProcess(uint16_t pId, IProcessMessage* msg) {
 			ProcessFactory factory = this->getFactory(pId);
 			if (factory != NULL) {
-				IFirmwareProcess* t = factory(pId, msg);
+				IFirmwareProcess* t = factory(msg);
 				return t;
 			}
 			return NULL;
@@ -234,7 +234,7 @@ class IFirmware {
 		//@implement
 		int findProcess(uint16_t pId) {
 			for (int i = 0; i < this->processList.size(); i++) {
-				if (this->processList.get(i)->isId(pId)) {
+				if (this->processList.get(i)->getId() == pId) {
 					return i;
 				}
 			}

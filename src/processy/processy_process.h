@@ -11,6 +11,8 @@ class IFirmware;
 #include "processy_cfg.h"
 #include <Arduino.h>
 
+#define PROCESSID(num) const static uint16_t ID = num; uint16_t getId() {return num;}
+
 class IFirmwareProcess {
 	public:
 		enum ProcessState {
@@ -27,8 +29,8 @@ class IFirmwareProcess {
 		//@include "processy_cfg.h"
 		//@include "stuff.h"
 		//@include <Arduino.h>
-		IFirmwareProcess(uint16_t pId, IProcessMessage* msg) {
-			this->processId = pId;
+		IFirmwareProcess(IProcessMessage* msg) {
+			//this->processId = pId;
 			this->lastUpdate = millis();
 			#ifdef DEBUG_PRO_MS
 			this->resetUsedMs();
@@ -42,19 +44,14 @@ class IFirmwareProcess {
 			return this->state;
 		}
 
-		virtual ~IFirmwareProcess() {
-		};
+		static IFirmwareProcess* factory(IProcessMessage* msg);
 
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg);
-
-		uint16_t getId() {
-			return this->processId;
-		}
-
-		//@implement
-		bool isId(int compareTo) {
-			return this->processId == compareTo;
-		}
+		/**
+		 * @brief Get the Id of the process
+		 * 
+		 * @return uint16_t 
+		 */
+		virtual uint16_t getId() {};
 
 		//@implement
 		void stop() {
@@ -110,7 +107,7 @@ class IFirmwareProcess {
 		};
 
 	private:
-		uint16_t processId;
+		//uint16_t processId;
 		unsigned long lastUpdate;
 		unsigned long pausedUpTo;
 
