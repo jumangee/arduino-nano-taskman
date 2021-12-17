@@ -2,7 +2,7 @@
 Arduino nano task manager firmware designed in object-oriented way
 
 ## Requirements
-* GruntThe JavaScript Task Runner https://gruntjs.com/
+* Grunt: The JavaScript Task Runner https://gruntjs.com/
 * Arduino CLI (optional) https://arduino.github.io/arduino-cli/
 
 ## Important!
@@ -12,11 +12,16 @@ Build script tasks:
 
 build setting defined in "Gruntfile.js"
 
-## Why?
-* Every process (task) has its own scope
+## Features
 * Message-driven communication
 * Low coupling
-
-## Your firmware
-1. Define firmware process clasess extending IFirmwareProcess
-2. Define your firmware class and fill process list factory
+* Tiny size sourcecode: ~12KB storage with 3 example process
+* Resource allocation monitor, example:
+21:02:46.508 -> ----- PROC SUMMARY (for 10000ms) -----
+21:02:46.541 -> 101: 0ms (0%)
+21:02:46.541 -> 301: 4ms (0%)
+21:02:46.574 -> 223: 0ms (0%)
+21:02:46.574 -> 302: 10ms (0%)
+21:02:46.608 -> MEM FREE:900
+21:02:46.608 -> --------------------------------------
+* Beautiful code :)
