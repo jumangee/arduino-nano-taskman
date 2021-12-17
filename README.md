@@ -17,11 +17,13 @@ build setting defined in "Gruntfile.js"
 * Low coupling
 * Tiny size sourcecode: ~12KB storage with 3 example process
 * Resource allocation monitor, example:
-21:02:46.508 -> ----- PROC SUMMARY (for 10000ms) -----
-21:02:46.541 -> 101: 0ms (0%)
-21:02:46.541 -> 301: 4ms (0%)
-21:02:46.574 -> 223: 0ms (0%)
-21:02:46.574 -> 302: 10ms (0%)
-21:02:46.608 -> MEM FREE:900
-21:02:46.608 -> --------------------------------------
+
+		21:02:46.508 -> ----- PROC SUMMARY (for 10000ms) -----
+		21:02:46.541 -> 101: 0ms (0%)
+		21:02:46.541 -> 301: 4ms (0%)
+		21:02:46.574 -> 223: 0ms (0%)
+		21:02:46.574 -> 302: 10ms (0%)
+		21:02:46.608 -> MEM FREE:900
+		21:02:46.608 -> --------------------------------------
+
 * Beautiful code :)
