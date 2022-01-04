@@ -5,37 +5,46 @@
 #ifndef _FIRMWARE_FRAMEWORK_H
 #define _FIRMWARE_FRAMEWORK_H
 
-#include "LinkedList/LinkedList.h"
-
 #include "processy_cfg.h"
 #include "processy_process.h"
 #include "processy_message.h"
 #include <math.h>
 
-#define FACTORY(className) ProcessFactoryReg(className::ID, &className::factory)
-
 typedef IFirmwareProcess* (*ProcessFactory)(IProcessMessage*);
 
-class ProcessFactoryReg {
-	public:
-		uint16_t 		id;
-		ProcessFactory	factory;
+#define PROCESS_REG(className) registerProcess(className::ID, &className::factory)
 
-		ProcessFactoryReg(uint16_t pId, ProcessFactory f) {
-			this->id = pId;
-			this->factory = f;
+class IFirmwareProcessRegistration {
+	public:
+		uint16_t 			id;
+		ProcessFactory		factory;
+		IFirmwareProcess*	prc;
+
+		IFirmwareProcessRegistration(uint16_t pId, ProcessFactory f) {
+			id = pId;
+			factory = f;
+			prc = NULL;
+		}
+
+		void kill() {
+			if (prc != NULL) {
+				delete this->prc;
+				prc = NULL;
+			}
+		}
+
+		bool isActive() {
+			return prc != NULL;
 		}
 };
 
 class IFirmware {
 	protected:
-		static IFirmware* instance;
+		static IFirmware*				instance;
+		IFirmwareProcessRegistration*	processList[PROCESSY_MAX_LIST];
+		uint16_t						processListSize = 0;
 
-		//@implement
-		//@include <Arduino.h>
 		IFirmware() {
-			this->processList = LinkedList<IFirmwareProcess*>();
-
 			#ifdef DEBUG_PRO_MS
 			this->resetMsDebugTimer(millis());
 			#endif
@@ -46,45 +55,41 @@ class IFirmware {
 			return IFirmware::instance;
 		}
 
-		virtual ProcessFactory getFactory(uint16_t pId) = 0;
-
 		//@implement
 		IFirmwareProcess* getProcess(uint16_t pId) {
 			int pos = this->findProcess(pId);
-			if (pos > -1) {
-				return this->processList.get(pos);
-			}
-			return NULL;
+			return pos > -1 ? this->processList[pos]->prc : NULL;
 		}
 
 		//@implement
 		void stopProcess(uint16_t pId) {
-			int pos = this->findProcess(pId);
-			if (pos > -1) {
-				this->processList.get(pos)->stop();
+			IFirmwareProcessRegistration* reg = this->findRegistration(pId);
+			if (reg != NULL) {
+				reg->kill();
 			}
 		}
 
 		//@implement
 		void pauseProcess(uint16_t pId, unsigned long pauseTime) {
-			int pos = this->findProcess(pId);
-			if (pos > -1) {
-				this->processList.get(pos)->pause(pauseTime);
+			IFirmwareProcessRegistration* reg = this->findRegistration(pId);
+			if (reg != NULL) {
+				reg->prc->pause(pauseTime);
 			}
 		}
 
 		//@implement
 		void unPauseProcess(uint16_t pId) {
-			int pos = this->findProcess(pId);
-			if (pos > -1) {
-				IFirmwareProcess *process = this->processList.get(pos);
-				process->unPause();
+			IFirmwareProcessRegistration* reg = this->findRegistration(pId);
+			if (reg != NULL) {
+				reg->prc->unPause();
 			}
 		}
 
 		//@implement
 		void stopAll() {
-			this->processList.clear();
+			for (uint16_t i = 0; i < this->processListSize; i++) {
+				this->processList[i]->kill();
+			}
 		}
 
 		//@implement
@@ -97,9 +102,12 @@ class IFirmware {
 		void sendMessage(IProcessMessage* msg) {
 			if (msg == NULL) return;
 
-			for (int i = 0; i < processList.size(); i++) {
-				if (this->processList.get(i)->handleMessage(msg) == true) {	// message processing stop
-					break;
+			for (uint16_t i = 0; i < processListSize; i++) {
+				IFirmwareProcessRegistration* reg = this->processList[i];
+				if (reg->isActive()) {	// message processing stop
+					if (reg->prc->handleMessage(msg) == true) {
+						break;
+					}
 				}
 			}
 			delete msg;
@@ -108,28 +116,25 @@ class IFirmware {
 		//@implement
 		//@include "processy_cfg.h"
 		void run() {
-			if (this->processList.size() == 0) {
-				#ifdef DEFAULT_PROCESS
-					this->addProcess(F(DEFAULT_PROCESS));
-				#else
-					TRACELNF("NOTHING TO DO!")
-					return;
-				#endif
-			}
 			unsigned long curTime = millis();
 			if (this->update(curTime)) {	// true - auto process, false - manual process
 				curTime = millis();
-				for (int i = 0; i < this->processList.size(); i++) {
-					IFirmwareProcess *p = this->processList.get(i);
-					if (p->getState() != IFirmwareProcess::ProcessState::STOP && !p->isPaused(curTime)) {
-						curTime = p->run(curTime);
+				for (uint16_t i = 0; i < processListSize; i++) {
+					IFirmwareProcessRegistration* reg = this->processList[i];
+					if (reg->isActive()) {
+						if (reg->prc->getState() != IFirmwareProcess::ProcessState::STOP && !reg->prc->isPaused(curTime)) {
+							curTime = reg->prc->run(curTime);
+						}
 					}
 				}
 
 				// safely kill stopped processes
-				for (int i = this->processList.size()-1; i >= 0; i--) {
-					if (this->processList.get(i)->getState() == IFirmwareProcess::ProcessState::STOP) {
-						delete this->processList.remove(i);
+				for (uint16_t i = processListSize-1; i >= 0; i--) {
+					IFirmwareProcessRegistration* reg = this->processList[i];
+					if (reg->isActive()) {
+						if (reg->prc->getState() == IFirmwareProcess::ProcessState::STOP) {
+							reg->kill();
+						}
 					}
 				}
 			}
@@ -140,31 +145,24 @@ class IFirmware {
 				handlerProcessDebugTimer(dT);
 				this->resetMsDebugTimer(millis());
 			}
-			#else
-				handlerProcessDebugTimer(0);
 			#endif
 		}
 
 		//@implement
 		void addProcess(uint16_t pId, IProcessMessage* msg = NULL) {
-			if (this->findProcess(pId) > -1) {
-				return;	// only 1 instance of process
+			int i = findProcess(pId);
+			if (i > -1) {
+				IFirmwareProcessRegistration* reg = this->processList[i];
+				if (!reg->isActive()) {
+					reg->prc = reg->factory(msg);
+					if (msg != NULL) {
+						delete msg;
+					}
+				}
 			}
-			IFirmwareProcess* newProcess = this->createProcess(pId, msg);
-			if (msg != NULL) {
-				delete msg;
-			}
-			if (newProcess == NULL) {
-        		TRACELNF("IFirmware::addProcess ERR")
-				return;
-			}
-
-			this->processList.add(newProcess);
 		}
 
 	protected:
-		LinkedList<IFirmwareProcess*> processList;
-
 		#ifdef DEBUG_PRO_MS
 		unsigned long msDebugTimerStart;
 
@@ -174,47 +172,35 @@ class IFirmware {
 		#endif
 
 		//@implement
-		//*** OVERRIDE THIS ***/
 		//@include "stuff.h"
 		//@include "MemoryFree.h"
-		void handlerProcessDebugTimer(unsigned long dT) {
-			#ifdef DEBUG_PRO_MS
-			{
+		virtual void handlerProcessDebugTimer(unsigned long dT) {
+			#if DEBUG_PRO_MS == 1
+				#if PROCESSY_DEBUG_SERIAL == 1
 				TRACEF("----- PROC SUMMARY (for ");
 				TRACE(dT);
 				TRACELNF("ms) -----");
-			}
-			for (int i = 0; i < this->processList.size(); i++) {
-				IFirmwareProcess* process = processList.get(i);
-				{
-					uint32_t used = process->getUsedMs();
-					TRACE(process->getId())
-					TRACEF(": ")
-					TRACE(used)
-					TRACEF("ms (");
-					TRACE(round((used * 100) / dT))
-					TRACELNF("%)");
+				for (uint16_t i = 0; i < this->processListSize; i++) {
+					IFirmwareProcessRegistration* reg = this->processList[i];
+					if (reg->isActive()) {
+						uint32_t used = reg->prc->getUsedMs();
+						TRACE(reg->id)
+						TRACEF(": ")
+						TRACE(used)
+						TRACEF("ms (");
+						TRACE(round((used * 100) / dT))
+						TRACELNF("%)");
+						reg->prc->resetUsedMs();
+					}
 				}
-				process->resetUsedMs();
-			}
-			#endif
+				#endif
+			int free = freeMemory();
+			this->sendMessage(new MemUsageMessage(free));
 			TRACEF("MEM FREE:");
-			{
-				int free = freeMemory();
-				this->sendMessage(new MemUsageMessage(free));
-				TRACELN(free)
-			}
+			TRACELN(free)
 			TRACELNF("--------------------------------------");
+			#endif
 		}
-
-		#ifdef DEBUG_PRO_MS
-		void resetProcessMsTotal() {
-			for (int i = 0; i < this->processList.size(); i++) {
-				//IFirmwareProcess* process = ;
-				this->processList.get(i)->resetUsedMs();
-			}
-		}
-		#endif
 
 		//@implement
 		bool update(unsigned long ms) {
@@ -222,23 +208,30 @@ class IFirmware {
 		};
 
 		//@implement
-		IFirmwareProcess* createProcess(uint16_t pId, IProcessMessage* msg) {
-			ProcessFactory factory = this->getFactory(pId);
-			if (factory != NULL) {
-				IFirmwareProcess* t = factory(msg);
-				return t;
+		int findProcess(uint16_t pId) {
+			for (uint16_t i = 0; i < processListSize; i++) {
+				IFirmwareProcessRegistration* reg = findRegistration(pId);
+				if (reg->id == pId) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		//@implement
+		IFirmwareProcessRegistration* findRegistration(uint16_t pId) {
+			for (uint16_t i = 0; i < processListSize; i++) {
+				if (this->processList[i]->id == pId) {
+					return this->processList[i];
+				}
 			}
 			return NULL;
 		}
 
 		//@implement
-		int findProcess(uint16_t pId) {
-			for (int i = 0; i < this->processList.size(); i++) {
-				if (this->processList.get(i)->getId() == pId) {
-					return i;
-				}
-			}
-			return -1;
+		void registerProcess(uint16_t pId, ProcessFactory f) {
+			this->processList[this->processListSize] = new IFirmwareProcessRegistration(pId, f);
+			this->processListSize++;
 		}
 
 };

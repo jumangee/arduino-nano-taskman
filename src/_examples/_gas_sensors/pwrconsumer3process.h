@@ -21,15 +21,13 @@
      * Process consists of 2 task, pwr switch at pin 10
      */
     class PwrConsumer3Process: public PwrConsumerProcess {
-        private:
-            const uint16_t taskId[1] = {PRC_MHZ19};
-
         public:
             PROCESSID(PRC_CONSUMER3);
 
             //@implement
             //@include "pwrconsumer_process.h"
-            PwrConsumer3Process(IProcessMessage* msg): PwrConsumerProcess(10, taskId, (*(&taskId + 1) - taskId), msg) { 
+            PwrConsumer3Process(IProcessMessage* msg): PwrConsumerProcess(10, msg) { 
+				addTask(PRC_MHZ19);
                 TRACELNF("PwrConsumer3Process::init");
             }
 
@@ -44,6 +42,10 @@
             //@include "processy_cfg.h"
             bool handleMessageLogic(IProcessMessage* msg) {
                 return false;
+            }
+
+            uint16_t getNextConsumerId() {
+                return PRC_CONSUMER1;
             }
 
     };

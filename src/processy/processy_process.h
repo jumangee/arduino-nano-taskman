@@ -106,6 +106,13 @@ class IFirmwareProcess {
 			return false;
 		};
 
+		//@implement
+		void sendMessage(IProcessMessage* msg) {
+			if (msg != NULL) {
+				this->getHost()->sendMessage(msg);
+			}
+		};
+
 	private:
 		//uint16_t processId;
 		unsigned long lastUpdate;

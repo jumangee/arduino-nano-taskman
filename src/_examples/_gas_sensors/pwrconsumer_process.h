@@ -25,49 +25,43 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		};
 
 	protected:
+		struct TaskInfo {
+			uint16_t	prcId;
+			WorkState	state;
+		};
+
         byte        	keyPin;
         uint32_t    	poweredTime;
-		WorkState		tasksArr[MAXTASKCOUNT];
-		const uint16_t	*taskIdList;
-		byte			taskCnt;
+
+		TaskInfo		tasks[MAXTASKCOUNT];
+		byte			tasksCnt = 0;
 
 	public:
+
+		/* Returns next consumer process id or 0 to stop */
+		virtual uint16_t getNextConsumerId() = 0;
+
 		//@implement
-		//@include "processy_cfg.h"
-		PwrConsumerProcess(byte keyPin, const uint16_t *idList, byte tasks, IProcessMessage* msg): IFirmwareProcess(msg) {
-			TRACELNF("PwrConsumerProcess::init")
-			this->taskIdList = idList;
-			this->taskCnt = tasks;
+		PwrConsumerProcess(byte keyPin, IProcessMessage* msg): IFirmwareProcess(msg) {
 			this->keyPin = keyPin;
 			this->poweredTime = 0;
-
-			this->clearState();
 		}
 
 		//@implement
-		void clearState() {
-			for (byte i = 0; i < this->taskCnt; i++) {
-				this->tasksArr[i] = NONE;
-			}
+		void addTask(uint16_t prcId) {
+			tasks[tasksCnt].prcId = prcId;
+			tasks[tasksCnt].state = NONE;
+			tasksCnt++;
 		}
 
 		//@implement
-		int findProcessId(uint16_t id) {
-			for (byte i = 0; i < this->taskCnt; i++) {
-				if (this->taskIdList[i] == id) {
+		int findTask(uint16_t id) {
+			for (byte i = 0; i < tasksCnt; i++) {
+				if (this->tasks[i].prcId == id) {
 					return i;
 				}
 			}
 			return -1;
-		}
-
-		//@implement
-		void taskDone(uint16_t process_id) {
-			int pos = this->findProcessId(process_id);
-			if (pos == -1) return;
-
-			this->tasksArr[pos] = DONE;
-			this->getHost()->stopProcess(process_id);
 		}
 
 		/**
@@ -89,56 +83,61 @@ class PwrConsumerProcess: public IFirmwareProcess {
 		}
 
 		//@implement
-		//@include "messages.h"
+		//@include "ecosense_messages.h"
 		void update(unsigned long ms) {
 			// we got POWER! ))
 
 			switch (this->getWorkState())
 			{
 				case START: {
-					TRACELNF("PwrConsumerProcess: start child processes");
-					for (byte i = 0; i < this->taskCnt; i++) {
-						this->getHost()->addProcess(this->taskIdList[i]);
-						this->tasksArr[i] = ACTIVE;
+					TRACELNF("PwrConsumer: start tasks");
+					for (byte i = 0; i < tasksCnt; i++) {
+						this->getHost()->addProcess(tasks[i].prcId);
+						tasks[i].state = ACTIVE;
 					}
 					return;
 				}
 				case DONE: {
 					// shutdown
-					TRACELNF("PwrConsumerProcess: shut down");
-					this->clearState();
+					TRACELNF("PwrConsumer: stop");
 					
+					this->stop();
+
 					// unlock pwr key
 					this->releaseLoad();
-					this->getHost()->sendMessage(ProcessOrderMessage::goNextOf(this->getId()));
+
+					uint16_t nextId = this->getNextConsumerId();
+					if (nextId > 0) {
+						this->getHost()->addProcess(nextId);	// start next of process list
+					}
 					return;
 				}
 				default: {
 					// no work should be done here?
-					this->pause(15);
+					this->pause(100);
 				}
 			}
 		}
 
 		//@implement
+		//@include "ecosense_messages.h"
 		bool handleMessage(IProcessMessage* msg) {
 			switch (msg->getType())
 			{
 				case TASKDONE_MESSAGE: {
-					TRACELNF("PwrConsumerProcess/TASKDONE_MESSAGE")
-					this->taskDone(((TaskDoneMessage*)msg)->getTaskId());
-					return false;
-				}
-				case PRC_ORDER_MESSAGE: {
-					if (((ProcessOrderMessage*)msg)->getNextId() != this->getId()) {
-						ProcessOrderMessage* msg = ProcessOrderMessage::goNextOf(this->getId());
-						this->getHost()->addProcess(msg->getNextId());	// start next of process list
-						this->stop();
-					}
+					TRACELNF("PwrConsumer: task done")
+
+					uint16_t taskId = ((TaskDoneMessage*)msg)->getTaskId();
+
+					int pos = this->findTask(taskId);
+					if (pos == -1) return;
+
+					this->tasks[pos].state = DONE;
+					this->getHost()->stopProcess(taskId);
 					return false;
 				}
 			}
-			if (this->getWorkState() != ACTIVE) return false;//deepSleep || 
+			if (this->getWorkState() != ACTIVE) return false;
 			return this->handleMessageLogic(msg);
 		}
 
@@ -146,43 +145,32 @@ class PwrConsumerProcess: public IFirmwareProcess {
 			byte none = 0;
 			byte done = 0;
 
-			for (byte i = 0; i < this->taskCnt; i++) {
-				WorkState s = this->tasksArr[i];
+			for (byte i = 0; i < tasksCnt; i++) {
+				WorkState s = this->tasks[i].state;
 				if (s == NONE) {
 					none++;
 				} else if (s == DONE) {
 					done++;
 				}
 			}
-			if (none == this->taskCnt) {
+			if (none == tasksCnt) {
 				return START;
 			}
-			if (done == this->taskCnt) {
+			if (done == tasksCnt) {
 				return DONE;
 			}
 			return ACTIVE;
 		}
 
-        uint32_t getPoweredTime() {
-            return this->poweredTime;
-        }
-
         //@implement
         void releaseLoad() {
             if (this->poweredTime != 0) {
 				if (!PowerloadManagement::get()->releasePin(this->poweredTime)) {
-					TRACELNF("PwrConsumerProcess//got FALSE");
+					TRACELNF("PwrConsumer: err on stop");
 				}
 				this->poweredTime = 0;
 			}
         }
-
-		//@implement
-		~PwrConsumerProcess() {
-			// stop process
-            this->releaseLoad();
-			TRACELNF("PwrConsumerProcess::stop");
-		}
 };
 
 #endif

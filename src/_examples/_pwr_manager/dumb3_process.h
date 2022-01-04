@@ -19,13 +19,15 @@ class Dumb3Process: public IFirmwareProcess {
         bool active;
 
 	public:
+		PROCESSID(PRC_DUMB3);
+
 		//@implement
-		Dumb3Process(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		Dumb3Process(IProcessMessage* msg): IFirmwareProcess(msg) {
 			TRACELNF("Dumb3Process::init");
 		}
         
 		//@implement
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
+		static IFirmwareProcess* factory(IProcessMessage* msg) {
 			TRACELNF("Dumb3Process::factory");
 			return new Dumb3Process(pId, msg);
 		}
@@ -37,12 +39,6 @@ class Dumb3Process: public IFirmwareProcess {
 			}
 			else
 				this->pause(450);
-		}
-
-		//@implement
-		~Dumb3Process() {
-			// stop process
-			TRACELNF("Dumb3Process::stop")
 		}
 
 };

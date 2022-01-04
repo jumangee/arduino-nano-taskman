@@ -1,5 +1,3 @@
-//#include <Wire.h>
-
 #include "examplefirmware.h"
 
 void setup() {

@@ -40,7 +40,7 @@ class ProcessOrderMessage: public IProcessMessage {
 		/**
 		 * @brief Definition of process start order
 		 */
-		uint16_t processOrderList[3] = {PRC_CONSUMER1, PRC_CONSUMER2, PRC_CONSUMER3};
+		uint16_t processOrderList[2] = {PRC_CONSUMER2, PRC_CONSUMER3};	//PRC_CONSUMER1, 
 
 		//@implement
 		ProcessOrderMessage(const uint16_t lastPid = 0): IProcessMessage(NULL, PRC_ORDER_MESSAGE) {

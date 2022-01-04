@@ -10,9 +10,7 @@
 #include "processy.h"
 
 // ---[ PROCESSES ]---
-#include "dumb1_process.h"
-#include "dumb2_process.h"
-#include "dumb3_process.h"
+#include "beeper_process.h"
 // -------------------
 
 class ExampleFirmware: public IFirmware {
@@ -25,14 +23,8 @@ class ExampleFirmware: public IFirmware {
 		TRACELNF("START");
 		#endif
 		
-		PROCESS_REG(Dumb1Process);
-		PROCESS_REG(Dumb2Process);
-		PROCESS_REG(Dumb3Process);
-
-		/* all tasks works simulatenously */
-		addProcess(PRC_DUMB1);
-		addProcess(PRC_DUMB2);
-		addProcess(PRC_DUMB3);
+		PROCESS_REG(DisplayProcess);
+		addProcess(PRC_BEEPER);
 	};
 	
 	public:

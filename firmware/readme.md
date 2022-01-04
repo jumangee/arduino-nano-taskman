@@ -1,1 +1,0 @@
-Copy here all files with "firmware.ino" from one of examples directory

@@ -45,39 +45,23 @@ const static byte ExampleFirmware::PwrMngmtPins[] = PWRMNGMTPINS;
 
 		PowerloadManagement::init(ARR2PTR(ExampleFirmware::PwrMngmtPins));
 
-		this->addProcess(PRC_MAIN);
+		PROCESS_REG(MainProcess);
+
+		PROCESS_REG(PwrConsumer1Process);
+		PROCESS_REG(PwrConsumer2Process);
+		PROCESS_REG(PwrConsumer3Process);
+
+		PROCESS_REG(Dumb1Process);
+		PROCESS_REG(Dumb2Process);
+		PROCESS_REG(Dumb3Process);
 
 		// one pwr manager process should be started to handle start message
 		addProcess(PRC_CONSUMER1);
-		this->sendMessage(ProcessOrderMessage::start());
 
 		TRACELNF("Power management: STARTED");
 	};
 	
 	public:
-		//@implement
-		ProcessFactory getFactory(uint16_t pId) {
-			const static ProcessFactoryReg factoryList[] = {	//	factories list
-				FACTORY(PRC_MAIN, MainProcess)
-
-				,FACTORY(PRC_CONSUMER1, PwrConsumer1Process)
-				,FACTORY(PRC_CONSUMER2, PwrConsumer2Process)
-				,FACTORY(PRC_CONSUMER3, PwrConsumer3Process)
-
-				,FACTORY(PRC_DUMB1, Dumb1Process)
-				,FACTORY(PRC_DUMB2, Dumb2Process)
-				,FACTORY(PRC_DUMB3, Dumb3Process)
-			};
-
-			int len = *(&factoryList + 1) - factoryList;	//TOTAL_FACTORIES_INCLUDED
-			for (byte i = 0; i < len; i++) {
-				if (factoryList[i].id == pId) {
-					return factoryList[i].factory;
-				}
-			}
-			return NULL;
-		}
-
 		//@implement
 		static IFirmware* get() {
 			if (IFirmware::instance == NULL) {

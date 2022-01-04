@@ -14,30 +14,22 @@
 #include <Arduino.h>
 
 class Dumb2Process: public IFirmwareProcess {
-	private:
-        bool active;
-
 	public:
+		PROCESSID(PRC_DUMB2);
+		
 		//@implement
-		Dumb2Process(uint16_t pId, IProcessMessage* msg): IFirmwareProcess(pId, msg) {
+		Dumb2Process(IProcessMessage* msg): IFirmwareProcess(msg) {
 			TRACELNF("Dumb2Process::init");
 		}
         
 		//@implement
-		static IFirmwareProcess* factory(uint16_t pId, IProcessMessage* msg) {
-			TRACELNF("Dumb2Process::factory");
-			return new Dumb2Process(pId, msg);
+		static IFirmwareProcess* factory(IProcessMessage* msg) {
+			return new Dumb2Process( msg);
 		}
 
         //@implement
 		void update(unsigned long ms) {
 			TRACELNF("Dumb2Process::update");
-		}
-
-		//@implement
-		~Dumb2Process() {
-			// stop process
-			TRACELNF("Dumb2Process::stop")
 		}
 
 };

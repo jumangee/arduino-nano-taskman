@@ -8,8 +8,10 @@
 	#define PRC_CONSUMER2		222
 	#define PRC_CONSUMER3		223
 
+    #define PRC_BME280          301
     #define PRC_MHZ19			302
 	#define PRC_PPD42NS			305
+    
 	#define PRC_DUMB2			902
 	#define PRC_DUMB3			903
 

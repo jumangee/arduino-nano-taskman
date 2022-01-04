@@ -2,17 +2,18 @@
 #define _PROCESSY_CFG_H
 
     /*** processy config ***/
-    #define DEBUG_PRO_MS
-    #define DEBUG_PRO_PERIOD_MS 10000
+	#define	PROCESSY_MAX_LIST		30	
+    #define DEBUG_PRO_MS			0
+    #define DEBUG_PRO_PERIOD_MS		10000
 
-	#define PROCESSY_DEBUG_SERIAL
+	#define PROCESSY_DEBUG_SERIAL	0
 
     /*** processy inlines ***/
     #define S(t) String(t)
     #define SF(t) String(F(t))
     #define SFC(t) String(F(t)).c_str()
 	
-	#ifdef PROCESSY_DEBUG_SERIAL
+	#if PROCESSY_DEBUG_SERIAL == 1
 		#define TRACELN(t) Serial.println(t);
 		#define TRACELNF(t) Serial.println(String(F(t)));
 		#define TRACE(t) Serial.print(t);
