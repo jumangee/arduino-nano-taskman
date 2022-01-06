@@ -16,7 +16,7 @@ build setting defined in "Gruntfile.js"
 ## Features
 * Message-driven communication
 * Low coupling
-* Tiny size sourcecode: ~12KB storage with 3 example process
+* Tiny size footprint
 * Resource allocation monitor, example:
 
 		21:02:46.508 -> ----- PROC SUMMARY (for 10000ms) -----
