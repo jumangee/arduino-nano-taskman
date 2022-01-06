@@ -1,5 +1,6 @@
 # Processy Framework
 Arduino nano task manager firmware designed in object-oriented way
+Project page at [Hackaday.io](https://hackaday.io/project/183221-processy-framework)
 
 ## Requirements
 * Grunt: The JavaScript Task Runner https://gruntjs.com/
