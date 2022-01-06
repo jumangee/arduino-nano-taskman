@@ -14,7 +14,7 @@ typedef IFirmwareProcess* (*ProcessFactory)(IProcessMessage*);
 
 #define PROCESS_REG(className) registerProcess(className::ID, &className::factory)
 
-class IFirmwareProcessRegistration {
+struct IFirmwareProcessRegistration {
 	public:
 		uint16_t 			id;
 		ProcessFactory		factory;
@@ -29,7 +29,7 @@ class IFirmwareProcessRegistration {
 		void kill() {
 			if (prc != NULL) {
 				delete this->prc;
-				prc = NULL;
+				this->prc = NULL;
 			}
 		}
 
@@ -64,8 +64,8 @@ class IFirmware {
 		//@implement
 		void stopProcess(uint16_t pId) {
 			IFirmwareProcessRegistration* reg = this->findRegistration(pId);
-			if (reg != NULL) {
-				reg->kill();
+			if (reg != NULL && reg->isActive()) {
+				reg->prc->stop();
 			}
 		}
 
@@ -122,23 +122,23 @@ class IFirmware {
 				for (uint16_t i = 0; i < processListSize; i++) {
 					IFirmwareProcessRegistration* reg = this->processList[i];
 					if (reg->isActive()) {
-						if (reg->prc->getState() != IFirmwareProcess::ProcessState::STOP && !reg->prc->isPaused(curTime)) {
+						if (reg->prc->getState() == IFirmwareProcess::ProcessState::STOP) {
+							reg->kill();
+						} else if (!reg->prc->isPaused(curTime)) {
 							curTime = reg->prc->run(curTime);
 						}
 					}
 				}
 
 				// safely kill stopped processes
-				for (uint16_t i = processListSize-1; i >= 0; i--) {
+				/*for (uint16_t i = 0; i < this->processListSize; i++) {
 					IFirmwareProcessRegistration* reg = this->processList[i];
-					if (reg->isActive()) {
-						if (reg->prc->getState() == IFirmwareProcess::ProcessState::STOP) {
-							reg->kill();
-						}
+					if (reg->isActive() && reg->prc->getState() == IFirmwareProcess::ProcessState::STOP) {
+						reg->kill();
 					}
-				}
+				}*/
 			}
-			#ifdef DEBUG_PRO_MS
+			#ifdef DEBUG_PRO_MS > 0
 			unsigned long dT = curTime - msDebugTimerStart;
 			if (dT >= DEBUG_PRO_PERIOD_MS) {
 				// call report
@@ -210,8 +210,7 @@ class IFirmware {
 		//@implement
 		int findProcess(uint16_t pId) {
 			for (uint16_t i = 0; i < processListSize; i++) {
-				IFirmwareProcessRegistration* reg = findRegistration(pId);
-				if (reg->id == pId) {
+				if (this->processList[i]->id == pId) {
 					return i;
 				}
 			}

@@ -3,7 +3,14 @@
 
     /*** processy config ***/
 	#define	PROCESSY_MAX_LIST		30	
-    #define DEBUG_PRO_MS			0
+    
+	/**
+	 * @brief Add system debug info
+	 * 0 - OFF
+	 * 1 - Standart (ifirmware built-in)
+	 * 2 - Custom (save a little of progmem)
+	 */
+	#define DEBUG_PRO_MS			2
     #define DEBUG_PRO_PERIOD_MS		10000
 
 	#define PROCESSY_DEBUG_SERIAL	0
