@@ -28,3 +28,6 @@ build setting defined in "Gruntfile.js"
 		21:02:46.608 -> --------------------------------------
 
 * Beautiful code :)
+
+## Projects, using this framework ##
+* https://github.com/jumangee/EcoSenseAtclock
